@@ -27,7 +27,7 @@ the way the Practice Codes and the TTYD AP mod were.
 
 ```bash
 # configure the US Aurora build first (docs/PC_PORT.md); the tools read its flags
-python mods/tower-of-trials/port/port_tot.py
+python mods/tower-of-trials/port/port_tot.py      # or in parts: --to fields, --from designators --to leftovers, ...
 python mods/tower-of-trials/port/check_syntax.py
 cmake -S . -B build-pc-us-aurora -DTTYD_LIBRARY_MODS=mods/tower-of-trials
 ninja -C build-pc-us-aurora tower-of-trials
@@ -35,14 +35,14 @@ ninja -C build-pc-us-aurora tower-of-trials
 
 ## Status (2026-11-07)
 
-- **Conversion: every ToT source compiles** (`check_syntax.py`: 0 errors in ToT's code, 94 files), with this
-  sandbox's approximate Aurora flags. Rerun `port_tot.py` and `check_syntax.py` after configuring the real US
-  Aurora build to confirm, then build and link the library.
-- `check_syntax.py` also reports errors from Paper Cut's own `ttyd_mod/game_loose.h` on Linux (`decltype(&sin)`
-  with libstdc++'s overloads): the same 7 in every file, not ToT's; Paper Cut itself needs that fixed for Linux
-  library mods (Windows is what Paper Cut tests mods on).
-- Linked and run: not yet. Expect link errors next (functions ToT declares that the game doesn't export) and
-  then the runtime work below.
+- **Builds and links** (Linux x86-64, the real US Aurora build's flags, clang 22): all 95 sources compile with
+  no errors, and `tower-of-trials.so` links. Of the 805 symbols it takes from the game when loaded, every one is
+  a function or variable the game exports by name (checked against the decomp's sources); the only others are the
+  C/C++ runtime's and two weak ones it may lack (`_ITM_*`). Not yet built on Windows or loaded into the game.
+- The game's file-local functions ToT calls (163) go through stubs bound to the pointers the game exports for
+  them (`statics.py`).
+- Paper Cut fix on the way: `ttyd_mod/game_loose.h` no longer lists C library functions (`sin`), which made every
+  C++ code mod fail to compile on Linux.
 - Hooks (`INVENTORY.md`): ToT patches 197 game functions; 109 have a Paper Cut hook slot, 87 need one added to
   `port/mods/hooks.spec` (then `tools/port/gen_hooks.py --apply`). Its 263 `writeBranch*`/`writePatch` sites on code
   are skipped by the port (they log) and each needs redoing as a hook.
