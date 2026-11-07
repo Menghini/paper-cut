@@ -147,7 +147,8 @@ def main():
              "#if !defined(__x86_64__) && !defined(_M_X64)",
              '#error "tot_statics.cpp: the stubs are x86-64 (port/statics.py)"',
              "#endif", "", 'extern "C" {']
-    lines += ["void* tot_static_ptr_%s = nullptr;" % n for n, _, _ in found]
+    # (hidden: the mod's own, reached PC-relative from the stubs inside a shared library)
+    lines += ["__attribute__((visibility(\"hidden\"))) void* tot_static_ptr_%s = nullptr;" % n for n, _, _ in found]
     lines += ["}", ""]
     for n, _, _ in found:
         lines.append('__asm__(".text\\n.globl %s\\n.p2align 4\\n%s:\\n    jmp *tot_static_ptr_%s(%%rip)\\n");' % (n, n, n))
