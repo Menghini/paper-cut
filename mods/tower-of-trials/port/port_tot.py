@@ -65,57 +65,77 @@ def main():
     ap.add_argument("--build", default=os.path.join(ROOT, "build-pc-us-aurora"),
                     help="the US Aurora build (its ttyd_exports.def, when there is one)")
     ap.add_argument("--skip-fields", action="store_true", help="skip mod_fields.py (slow; for header work)")
+    ap.add_argument("--from", dest="from_step", help="start at this step (copy, pause_extra, side_fields, fields, "
+                    "designators, leftovers, headers, finish): a run in parts, each resuming the last")
+    ap.add_argument("--to", dest="to_step", help="stop after this step")
     a = ap.parse_args()
 
     src = a.tot or os.path.join(MOD, "tot-src")
-    if not a.tot:
+    if not a.tot and not a.from_step:
         fetch(src)
     rel = os.path.join(src, "ttyd-tools", "rel")
     if not os.path.isdir(os.path.join(rel, "source")):
         sys.exit("no ttyd-tools/rel/source in %s" % src)
 
     work = os.path.join(MOD, "tot")
-    if os.path.isdir(work):
-        shutil.rmtree(work)
-    shutil.copytree(rel, work, ignore=shutil.ignore_patterns("*.raw", "*.pnproj", "Makefile"))
-
     py = sys.executable
-    run([py, os.path.join(HERE, "pause_extra.py"), "--tot", work])
-    run([py, os.path.join(HERE, "side_fields.py"), "--tot", work])
-    if not a.skip_fields:
+    gen = os.path.join(work, "generated")
+
+    def copy_tree():
+        if os.path.isdir(work):
+            shutil.rmtree(work)
+        shutil.copytree(rel, work, ignore=shutil.ignore_patterns("*.raw", "*.pnproj", "Makefile"))
+
+    def fields():
         run([py, os.path.join(TOOLS, "mod_fields.py"), "--mod", work, "--include", "include",
              "--define", "TTYD_US", "--version", "G8ME01", "--report", os.path.join(MOD, "FIELDS.md"),
              "--apply"] + aliases())
+
+    def designators():
         run([py, os.path.join(HERE, "designators.py"), "--mod", work, "--include", "include",
              "--define", "TTYD_US", "--version", "G8ME01",
              "--report", os.path.join(MOD, "DESIGNATORS.md")] + aliases())
+
+    def leftovers():
         run([py, os.path.join(HERE, "leftovers.py"), "--mod", work, "--include", "include",
              "--define", "TTYD_US", "--version", "G8ME01"] + aliases())
 
-    headers = [py, os.path.join(TOOLS, "mod_headers.py"), "--mod", work,
+    def headers():
+        cmd = [py, os.path.join(TOOLS, "mod_headers.py"), "--mod", work,
                "--headers", "include/ttyd/**/*.h", "--headers", "include/gc/*.h",
                "--lst", "include/ttyd.us.lst", "--version", "G8ME01", "--include", "include",
                "--define", "TTYD_US", "--evt-header", "include/evt_cmd.h",
                "--widen-pointer-casts", "--gc-lowmem"] + aliases()
-    exports = os.path.join(a.build, "generated", "ttyd_exports.def")
-    if os.path.exists(exports):
-        headers += ["--exports", exports]
-    run(headers)
+        exports = os.path.join(a.build, "generated", "ttyd_exports.def")
+        if os.path.exists(exports):
+            cmd += ["--exports", exports]
+        run(cmd)
 
-    gen = os.path.join(work, "generated")
-    os.makedirs(gen, exist_ok=True)
-    run([py, os.path.join(TOOLS, "mod_asm_stubs.py"), "--mod", work, "--asm", "source/asm/*.s",
-         "--ported", os.path.join(HERE, "src", "*.cpp"), "--out", os.path.join(gen, "asm_stubs.cpp")])
+    def finish():
+        os.makedirs(gen, exist_ok=True)
+        run([py, os.path.join(TOOLS, "mod_asm_stubs.py"), "--mod", work, "--asm", "source/asm/*.s",
+             "--ported", os.path.join(HERE, "src", "*.cpp"), "--out", os.path.join(gen, "asm_stubs.cpp")])
+        shutil.copy(os.path.join(HERE, "include", "patch.h"), os.path.join(work, "include", "patch.h"))
+        os.remove(os.path.join(work, "source", "patch.cpp"))
+        run([py, os.path.join(HERE, "manual.py"), "--tot", work])
+        run([py, os.path.join(HERE, "byvalue.py"), "--tot", work,
+             "--out", os.path.join(work, "generated", "tot_byvalue.h")])
+        run([py, os.path.join(HERE, "inventory.py"), "--tot", rel, "--pc", ROOT,
+             "--out", os.path.join(MOD, "INVENTORY.md")])
 
-    shutil.copy(os.path.join(HERE, "include", "patch.h"), os.path.join(work, "include", "patch.h"))
-    os.remove(os.path.join(work, "source", "patch.cpp"))
-
-    run([py, os.path.join(HERE, "manual.py"), "--tot", work])
-    run([py, os.path.join(HERE, "byvalue.py"), "--tot", work,
-         "--out", os.path.join(work, "generated", "tot_byvalue.h")])
-
-    run([py, os.path.join(HERE, "inventory.py"), "--tot", rel, "--pc", ROOT,
-         "--out", os.path.join(MOD, "INVENTORY.md")])
+    steps = [("copy", copy_tree),
+             ("pause_extra", lambda: run([py, os.path.join(HERE, "pause_extra.py"), "--tot", work])),
+             ("side_fields", lambda: run([py, os.path.join(HERE, "side_fields.py"), "--tot", work])),
+             ("fields", fields), ("designators", designators), ("leftovers", leftovers),
+             ("headers", headers), ("finish", finish)]
+    names = [n for n, _ in steps]
+    first = names.index(a.from_step) if a.from_step else 0
+    last = names.index(a.to_step) if a.to_step else len(steps) - 1
+    for name, fn in steps[first:last + 1]:
+        if a.skip_fields and name in ("fields", "designators", "leftovers"):
+            continue
+        print("== step %s" % name, flush=True)
+        fn()
     print("converted: %s" % work)
 
 
