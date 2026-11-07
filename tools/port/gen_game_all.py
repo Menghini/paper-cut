@@ -73,6 +73,12 @@ def loose_functions(fl, tmp, text):
     # (and the port's overlay of the SDK's headers: portGXSetBlendMode for GXSetBlendMode)
     roots = tuple(os.path.normcase(os.path.join(ROOT, d)) for d in ("include", os.path.join("extern", "aurora", "include"),
                                                                     os.path.join("port", "include", "aurora_overlay")))
+    # the C library's own functions (sin...), which a game header may declare
+    # again: C++'s <cmath> overloads them (float, long double), so a loose
+    # overload's decltype(&sin) is ambiguous with libstdc++ and libc++, and a
+    # C++ mod calls them through <cmath> anyway
+    libc = set(re.findall(r"\b(\w+)\s*\(", open(os.path.join(ROOT, "include", "libc_decls.h"),
+                                                    encoding="utf-8").read()))
     # clang prints a location's file only when it changes (in print order)
     cur, names = "", set()
     for ln in ast.splitlines():
@@ -85,7 +91,7 @@ def loose_functions(fl, tmp, text):
             where = os.path.normcase(os.path.abspath(os.path.join(ROOT, cur)))
             # not a script's user function: a script takes its address (one
             # overload, no template beside it), and nothing calls one
-            if (where.startswith(roots) and name not in macros and not EVT_FUNC.match(typ)
+            if (where.startswith(roots) and name not in macros and name not in libc and not EVT_FUNC.match(typ)
                     and "..." not in typ and not typ.endswith(("()", "(void)"))):
                 names.add(name)
         for loc in LOC.finditer(ln):
