@@ -22,6 +22,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <type_traits>
 
 namespace mod {
 
@@ -77,9 +78,18 @@ inline void writeBranchPair(void* original_start, void*, void*) {
 // hookFunction(fn, dest): by the function's name, through its hook slot. A
 // macro so the name is known (a template only sees an address, and on Windows
 // a library's address of a game function is an import thunk).
+// ToT's hook lambdas take its own types (bool for the game's BOOL, its own
+// struct names), as ttyd-tools' hookFunction allowed: a lambda that doesn't
+// convert to the decomp's type goes in as its own function pointer, and the
+// game's function comes back as whatever pointer the trampoline variable is
+// (ttyd_mod/compat.h's TtydOriginal).
 template <typename Func, typename Dest>
-Func hookFunctionNamed(const char* name, Func, Dest destination) {
-    return ttydHookFunction(name, static_cast<Func>(destination));
+TtydOriginal hookFunctionNamed(const char* name, Func, Dest destination) {
+    if constexpr (std::is_convertible_v<Dest, Func>) {
+        return ttydHookFunction(name, static_cast<Func>(destination));
+    } else {
+        return ttydHookFunction(name, +destination);
+    }
 }
 
 }  // namespace mod

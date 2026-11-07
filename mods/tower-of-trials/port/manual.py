@@ -42,6 +42,19 @@ def fixups(tot):
         if new != text:
             count += 1
             open(path, "w", encoding="utf-8").write(new)
+    # ttyd_mod/game_loose.h overloads most game functions (TTYD_LOOSE: an
+    # adapter template beside the game's), so `(void*)weaponGetPowerDefault`
+    # is ambiguous; ttyd_fn_<name> is the game's own type
+    loose = set(re.findall(r"^TTYD_LOOSE\((\w+)\)", open(os.path.join(
+        ROOT, "port", "include", "ttyd_mod", "game_loose.h"), encoding="utf-8").read(), re.M))
+    cast = re.compile(r"(\(\s*void\s*\*\s*\)\s*|reinterpret_cast<\s*void\s*\*\s*>\s*\(\s*)"
+                      r"&?\s*(?:::)?(?:ttyd::\w+::)?(\w+)\b(?!\s*\()")
+    for path in srcs:
+        text = open(path, encoding="utf-8").read()
+        new = cast.sub(lambda m: m.group(1) + "static_cast<ttyd_fn_%s>(&::%s)" % (m.group(2), m.group(2))
+                       if m.group(2) in loose else m.group(0), text)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
     # every ttyd:: namespace the mod names exists, even one whose header
     # mod_headers.py emptied (its declarations are the decomp's now)
     os.makedirs(os.path.join(tot, "generated"), exist_ok=True)
