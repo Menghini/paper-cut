@@ -9,6 +9,7 @@ mod") describes for the Practice Codes and the TTYD AP mod:
   3. port/pause_extra.py                (ToT's re-laid-out pause menu fields: a struct of its own)
      tools/port/mod_fields.py --apply   (struct fields onto the decomp's names)
   4. port/designators.py                (the same, in data tables' .field = ...)
+     port/leftovers.py                  (accesses the AST pass didn't reach, by unique name)
   5. tools/port/mod_headers.py          (ToT's game headers become shims)
   6. tools/port/mod_asm_stubs.py        (PowerPC .s routines become stubs)
   7. port/include/patch.h over ToT's    (hooks through Paper Cut's slots)
@@ -86,6 +87,8 @@ def main():
         run([py, os.path.join(HERE, "designators.py"), "--mod", work, "--include", "include",
              "--define", "TTYD_US", "--version", "G8ME01",
              "--report", os.path.join(MOD, "DESIGNATORS.md")] + aliases())
+        run([py, os.path.join(HERE, "leftovers.py"), "--mod", work, "--include", "include",
+             "--define", "TTYD_US", "--version", "G8ME01"] + aliases())
 
     headers = [py, os.path.join(TOOLS, "mod_headers.py"), "--mod", work,
                "--headers", "include/ttyd/**/*.h", "--headers", "include/gc/*.h",

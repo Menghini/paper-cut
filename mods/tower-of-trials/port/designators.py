@@ -151,6 +151,21 @@ def rename_in(text, start, end, level, mapping, misses, where):
                     i = m.end()
                     continue
                 new, cast = hit
+                if "," in new:
+                    # an array the decomp splits into fields: `.f = {a, b, c}`
+                    vstart = m.end()
+                    while vstart < end and text[vstart].isspace():
+                        vstart += 1
+                    if vstart < end and text[vstart] == "{":
+                        close = block_end(text, vstart)
+                        vals = [v.strip() for v in text[vstart + 1:close].split(",") if v.strip()]
+                        names = new.split(",")
+                        out.append(text[last:m.start()])
+                        out.append(", ".join(".%s = %s" % (n, v) for n, v in zip(names, vals)))
+                        last = close + 1
+                        i = close + 1
+                        continue
+                    new = new.split(",")[0]
                 if new != field:
                     out.append(text[last:m.start(1)])
                     out.append(new)
@@ -196,6 +211,14 @@ def main():
                       "|".join(map(re.escape, types)) +
                       r")\s+(\*?\s*[A-Za-z_]\w*)\s*(\[[^\]=;{}]*\])?\s*=\s*\{")
     cache = {}
+    over = os.path.join(os.path.dirname(os.path.abspath(__file__)), "renames.txt")
+    if os.path.exists(over):
+        for line in open(over, encoding="utf-8"):
+            line = line.split("#")[0].strip()
+            if "=" in line:
+                k, v = line.split("=", 1)
+                rec, field = k.strip().split(".", 1)
+                cache[(rec, field)] = (v.strip(), None)
 
     def mapper(record):
         dec = aliases.get(record, record)

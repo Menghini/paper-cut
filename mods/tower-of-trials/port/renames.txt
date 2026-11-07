@@ -1,0 +1,6 @@
+# Field renames the offset/size matcher misses (designators.py), by hand:
+#   ModStruct.field=decompField
+#   ModStruct.field=f1,f2,f3   an array the decomp splits into fields: `.field = {a, b, c}`
+#                              becomes `.f1 = a, .f2 = b, .f3 = c`
+BattleUnitKind.itemsteal_param=itemStealParam
+BeroEntry.center_position=centerPosition,centerPositionY,centerPositionZ

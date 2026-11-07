@@ -32,3 +32,22 @@ inline T ByValue(const P* p) {
 }
 
 }  // namespace tot_port
+
+namespace tot_port {
+
+// A matrix's 3x4 floats, whichever type holds them: ToT's gc::mtx34 (a
+// struct with .m), the decomp's Mtx (the array itself), or a pointer to
+// either. ToT writes `x->mtx->m[0][3]`; manual.py makes it TotM(x->mtx)[0][3].
+template <class T>
+decltype(auto) TotM(T&& m) {
+    using U = std::remove_reference_t<T>;
+    if constexpr (std::is_array_v<U>) {
+        return (m);
+    } else if constexpr (std::is_pointer_v<U>) {
+        return TotM(*m);
+    } else {
+        return (m.m);
+    }
+}
+
+}  // namespace tot_port

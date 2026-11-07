@@ -100,6 +100,15 @@ def fixups(tot):
                      lambda m: "" if m.group(1) in macros else m.group(0), text, flags=re.M)
         if new != text:
             open(path, "w", encoding="utf-8").write(new)
+    # ToT's mtx34 is a struct {float m[3][4]}; the decomp's Mtx is the array
+    # itself (mod_headers.py aliases one to the other): a Mtx field is
+    # indexed directly; which one a name is isn't in the text, so
+    # tot_port::TotM (port/include/tot_byvalue_helpers.h) takes either
+    for path in glob.glob(os.path.join(tot, "source", "*.cpp")):
+        text = open(path, encoding="utf-8").read()
+        new = re.sub(r"((?:\b\w+(?:\[[^\]]*\])?(?:->|\.))*\b(?:mtx|matrix))(?:->|\.)m\[", r"tot_port::TotM(\1)[", text)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
     # every ttyd:: namespace the mod names exists, even one whose header
     # mod_headers.py emptied (its declarations are the decomp's now)
     os.makedirs(os.path.join(tot, "generated"), exist_ok=True)
