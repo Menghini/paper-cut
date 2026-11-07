@@ -23,6 +23,7 @@
 | PouchPartyData | PouchPartyData | 53 | 30 | 0 | 0 |
 | BattleWorkCommand | BattleCommand | 29 | 26 | 4 | 2 |
 | File | FileEntry | 30 | 30 | 0 | 0 |
+| MovementSoundData | BtlPoseSoundTable | 11 | 11 | 7 | 28 |
 | StatusWinWork | StatusWindowWork | 22 | 22 | 1 | 0 |
 | NpcSetupInfo | NpcSetupInfo | 22 | 8 | 15 | 0 |
 | FbatBattleInformation | FieldBattleInfo | 20 | 20 | 1 | 0 |
@@ -73,7 +74,6 @@
 | WinPartyData | (none) | 0 | 0 | 0 | 0 |
 | WinTabBodyInfo | (none) | 0 | 0 | 0 | 0 |
 | ExtPoseWork | (none) | 0 | 0 | 0 | 0 |
-| MovementSoundData | (none) | 0 | 0 | 0 | 0 |
 | HpGaugeParams | (none) | 0 | 0 | 0 | 0 |
 | color4 | (none) | 0 | 0 | 0 | 0 |
 | BattleSetupWeightedLoadout | (none) | 0 | 0 | 0 | 0 |
@@ -96,7 +96,6 @@
 - `WinMarioLinkData` (0x1C bytes, 66 accesses): same size: OSExecParams, BecSndWork, BattleWorkHpGauge, FieldBattleInfo, MapTexXform, MapTevCallbackInfo, MapObjectWork, BattleAudienceWindow
 - `WinMgrSelectEntryRow` (0x4 bytes, 53 accesses): same size: MapRawDL, MapFileLightTable, MapTexTable, MapMaterialNameTable, MarioMotHip, MarioMotKaze, MarioMotKpa, MapAnimTable
 - `WinLogTattleMenuWork` (0x30 bytes, 48 accesses): same size: OSFontHeader, DVDCommandBlock, OSStopwatch, CounterWork, BattleUnitSetup, EffMahojinWork, PuniBalloonWork, EffGuruguruN64Work
-- `MovementSoundData` (0x38 bytes, 39 accesses): same size: BtlPoseSoundTable, IconEntry, EffNokotarouWork, EffMagic1N64Work, EffRippleN64Work, PaperSoundBGM, ARAMEntry, AtmTeresa
 - `WinLogSubmenuInfo` (0x20 bytes, 27 accesses): same size: OSModuleInfo, OSMessageQueue, DVDDiskID, DVDBB2, DVDDriveInfo, BattleGroupSetup, FirstStrikeInfo, MapFileHeader
 - `StatusWinIconData` (0xC bytes, 20 accesses): same size: OSSemaphore, DVDDir, DVDDirEntry, Vec, MTXStack, CLUTHeader, TEXPalette, MayaAnimData
 - `BattleWorkCommandCursor` (0xC bytes, 18 accesses): same size: OSSemaphore, DVDDir, DVDDirEntry, Vec, MTXStack, CLUTHeader, TEXPalette, MayaAnimData
@@ -131,6 +130,14 @@
 - `BattleWork.ac_manager_work` (12): source/patches_battle.cpp:928, source/patches_battle.cpp:1112, source/patches_battle.cpp:1691, source/patches_battle.cpp:1692 ...
 - `BattleWork.act_record_work` (3): source/patches_battle.cpp:1259, source/patches_battle_seq.cpp:238, source/patches_stats.cpp:114
 - `BattleWorkTarget.fg_or_bg_layer` (3): source/patches_battle.cpp:1458, source/patches_battle.cpp:1585, source/patches_battle.cpp:1585
+- `MovementSoundData.walk_sound_right` (3): source/tot_custom_boss2.cpp:1618, source/tot_custom_boss2.cpp:1657, source/tot_custom_boss2.cpp:1719
+- `MovementSoundData.walk_initial_wait_timer` (3): source/tot_custom_boss2.cpp:1619, source/tot_custom_boss2.cpp:1658, source/tot_custom_boss2.cpp:1720
+- `MovementSoundData.walk_repeat_wait_timer_left` (3): source/tot_custom_boss2.cpp:1620, source/tot_custom_boss2.cpp:1659, source/tot_custom_boss2.cpp:1721
+- `MovementSoundData.walk_repeat_wait_timer_right` (3): source/tot_custom_boss2.cpp:1621, source/tot_custom_boss2.cpp:1660, source/tot_custom_boss2.cpp:1722
+- `MovementSoundData.run_sound_right` (3): source/tot_custom_boss2.cpp:1623, source/tot_custom_boss2.cpp:1662, source/tot_custom_boss2.cpp:1724
+- `MovementSoundData.run_initial_wait_timer` (3): source/tot_custom_boss2.cpp:1624, source/tot_custom_boss2.cpp:1663, source/tot_custom_boss2.cpp:1725
+- `MovementSoundData.run_repeat_wait_timer_left` (3): source/tot_custom_boss2.cpp:1625, source/tot_custom_boss2.cpp:1664, source/tot_custom_boss2.cpp:1726
+- `MovementSoundData.run_repeat_wait_timer_right` (3): source/tot_custom_boss2.cpp:1626, source/tot_custom_boss2.cpp:1665, source/tot_custom_boss2.cpp:1727
 - `BattleWorkCommand.unk_54c` (2): source/patches_battle_seq.cpp:671, source/patches_battle_seq.cpp:673
 - `BattleWorkUnitPart.movement_params` (1): source/patches_battle.cpp:1417
 - `BattleWorkActionCommandManager.ac_difficulty` (1): source/patches_battle.cpp:1692
@@ -138,3 +145,7 @@
 - `OSModuleInfo.prolog` (1): source/patches_core.cpp:428
 - `OSModuleInfo.epilog` (1): source/patches_core.cpp:439
 - `BattleUnitKind.itemsteal_param` (1): source/patches_enemy.cpp:135
+- `MovementSoundData.dive_sound_right` (1): source/tot_custom_boss2.cpp:1667
+- `MovementSoundData.dive_initial_wait_timer` (1): source/tot_custom_boss2.cpp:1668
+- `MovementSoundData.dive_repeat_wait_timer_left` (1): source/tot_custom_boss2.cpp:1669
+- `MovementSoundData.dive_repeat_wait_timer_right` (1): source/tot_custom_boss2.cpp:1670

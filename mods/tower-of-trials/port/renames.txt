@@ -4,3 +4,25 @@
 #                              becomes `.f1 = a, .f2 = b, .f3 = c`
 BattleUnitKind.itemsteal_param=itemStealParam
 BeroEntry.center_position=centerPosition,centerPositionY,centerPositionZ
+BattleWork.ac_manager_work=actionCommands
+BattleWork.act_record_work=actRecord
+BattleWorkUnit.unit_work=work
+# ToT's MovementSoundData flat names; the decomp's BtlPoseSoundTable nests run,
+# walk and dive as entry[0..2] {name0, name1, delay, period0, period1}
+MovementSoundData.jump_sound_left=jumpName0
+MovementSoundData.jump_sound_right=jumpName1
+MovementSoundData.run_sound_left=entry[0].name0
+MovementSoundData.run_sound_right=entry[0].name1
+MovementSoundData.run_initial_wait_timer=entry[0].delay
+MovementSoundData.run_repeat_wait_timer_left=entry[0].period0
+MovementSoundData.run_repeat_wait_timer_right=entry[0].period1
+MovementSoundData.walk_sound_left=entry[1].name0
+MovementSoundData.walk_sound_right=entry[1].name1
+MovementSoundData.walk_initial_wait_timer=entry[1].delay
+MovementSoundData.walk_repeat_wait_timer_left=entry[1].period0
+MovementSoundData.walk_repeat_wait_timer_right=entry[1].period1
+MovementSoundData.dive_sound_left=entry[2].name0
+MovementSoundData.dive_sound_right=entry[2].name1
+MovementSoundData.dive_initial_wait_timer=entry[2].delay
+MovementSoundData.dive_repeat_wait_timer_left=entry[2].period0
+MovementSoundData.dive_repeat_wait_timer_right=entry[2].period1

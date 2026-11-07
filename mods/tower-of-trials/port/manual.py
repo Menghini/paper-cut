@@ -120,6 +120,20 @@ def fixups(tot):
         new = re.sub(r"((?:\b\w+(?:\[[^\]]*\])?(?:->|\.))*\b(?:mtx|matrix))(?:->|\.)m\[", r"tot_port::TotM(\1)[", text)
         if new != text:
             open(path, "w", encoding="utf-8").write(new)
+    # a 32-bit word array of ToT's over the decomp's pointer-sized one
+    # (unit_work[16] over BattleUnit's EvtWord work[16]/void* workPtr[16]):
+    # mod_fields.py's ttydAs<uint32_t[16]> would index 4-byte words in 8-byte
+    # slots on the PC; the decomp's own word array is the same 16 words
+    # (a pointer ToT keeps in one survives too)
+    # and the first-member casts mod_fields.py made for the sound table's
+    # nested entries: the member itself
+    for path in glob.glob(os.path.join(tot, "source", "*.cpp")):
+        text = open(path, encoding="utf-8").read()
+        new = re.sub(r"ttydAs<\s*(?:u?int32_t|uint32_t|int32_t)\s*\[\s*16\s*\]\s*>\(([^()]*?(?:->|\.))workPtr\)",
+                     r"\1work", text)
+        new = re.sub(r"ttydAs<\s*const char\s*\*\s*>\(([\w\.\->\[\]]*?\bentry\[\d\])\)", r"\1.name0", new)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
     # every ttyd:: namespace the mod names exists, even one whose header
     # mod_headers.py emptied (its declarations are the decomp's now)
     os.makedirs(os.path.join(tot, "generated"), exist_ok=True)

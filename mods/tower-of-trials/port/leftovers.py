@@ -94,6 +94,13 @@ def main():
             # the first struct's mapping wins (BattleWorkUnit before its parts)
             if same and inner not in nested.get(outer, {}):
                 nested.setdefault(outer, {})[inner] = min(same, key=lambda p: p.count("."))
+    # hand renames (renames.txt, also designators.py's): plain names only
+    over = os.path.join(os.path.dirname(os.path.abspath(__file__)), "renames.txt")
+    for line in open(over, encoding="utf-8") if os.path.exists(over) else []:
+        line = line.split("#")[0].strip()
+        if "=" in line and "," not in line:
+            k, v = line.split("=", 1)
+            renames[k.split(".", 1)[1].strip()] = v.strip()
     if not renames and not nested:
         print("leftovers.py: nothing to rename")
         return
@@ -105,8 +112,11 @@ def main():
 
         def sub(m):
             # a designator (`.field =` in a table) is designators.py's
+            # (`{ .field = ...` or `, .field = ...`: after a brace or comma, not
+            # after an object, as in `snd_table.field = ...`)
             after = text[m.end():m.end() + 3].lstrip()
-            if m.group(1) == "." and after.startswith("=") and not after.startswith("=="):
+            before = text[:m.start()].rstrip()[-1:]
+            if m.group(1) == "." and after.startswith("=") and not after.startswith("==") and before in ("{", ","):
                 return m.group(0)
             n[0] += 1
             return m.group(1) + renames[m.group(2)]
