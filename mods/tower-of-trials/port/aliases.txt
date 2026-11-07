@@ -22,3 +22,4 @@ BattleWorkBreakSlot=BreakSlotWork
 HitObj=HitEntry
 AnimPose=AnimationPose
 BattleWorkActionCommandManager=BattleActions
+MonosiriMsgEntry=TattleEntry

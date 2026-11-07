@@ -1,0 +1,3 @@
+# Fields ToT adds to the game's structs (or keeps in their padding), kept
+# beside each game object on the PC (side_fields.py): ModStruct field ...
+BattleWorkUnit last_attacker_weapon last_target_weapon last_target_weapon_cr_flags poison_damage pad_00f

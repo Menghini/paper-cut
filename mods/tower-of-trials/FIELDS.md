@@ -2,8 +2,8 @@
 
 | Mod struct | Decomp struct | Mapped | Renamed | Cast | Unmapped |
 |---|---|---|---|---|---|
-| BattleWorkUnit | BattleUnit | 616 | 573 | 406 | 29 |
 | WinPauseMenu | WindowWork | 656 | 651 | 317 | 0 |
+| BattleWorkUnit | BattleUnit | 616 | 573 | 406 | 16 |
 | EvtEntry | EventEntry | 487 | 487 | 46 | 0 |
 | BattleWeapon | BattleWeapon | 425 | 386 | 159 | 0 |
 | vec3 | Vec | 836 | 0 | 0 | 0 |
@@ -31,6 +31,7 @@
 | BattleWorkActionCommandManager | BattleActions | 11 | 11 | 10 | 1 |
 | BattleUnitSetup | BattleUnitSetup | 14 | 10 | 9 | 0 |
 | BattleUnitKindPart | BattleUnitKindPart | 12 | 11 | 9 | 0 |
+| MonosiriMsgEntry | TattleEntry | 14 | 14 | 0 | 0 |
 | BattleWorkCommandOperation | BattleCommandOperation | 15 | 2 | 10 | 0 |
 | BattleWorkAudience | BattleAudience | 10 | 10 | 3 | 0 |
 | BattleWorkActRecord | BattleActRecord | 10 | 10 | 0 | 0 |
@@ -57,7 +58,6 @@
 | CounterattackWork | (none) | 0 | 0 | 0 | 0 |
 | AudienceKindData | (none) | 0 | 0 | 0 | 0 |
 | SpBonusInfo | (none) | 0 | 0 | 0 | 0 |
-| MonosiriMsgEntry | (none) | 0 | 0 | 0 | 0 |
 | MovementParams | (none) | 0 | 0 | 0 | 0 |
 | BattleWorkCommandCursor | (none) | 0 | 0 | 0 | 0 |
 | BattleStatusChangeMsgData | (none) | 0 | 0 | 0 | 0 |
@@ -103,7 +103,6 @@
 - `WinLogTattleInfo` (0x2 bytes, 18 accesses): same size: WinSortEnt
 - `MovementParams` (0xB4 bytes, 17 accesses): same size: -
 - `HpGaugeParams` (0x1C bytes, 16 accesses): same size: OSExecParams, BecSndWork, BattleWorkHpGauge, FieldBattleInfo, MapTexXform, MapTevCallbackInfo, MapObjectWork, BattleAudienceWindow
-- `MonosiriMsgEntry` (0x18 bytes, 14 accesses): same size: OSMutex, FileManagerWork, EffectWork, BtlPartPoseSound, MapVtxRec, MapFileMesh, BattleCommandParty, BattleCommandMultiItem
 - `BattleSetupData` (0x44 bytes, 14 accesses): same size: BattleWorkStatusIconEntry, BattleWorkUnitPartBlurEntry, NpcSetupBattleInfo, MapHeader, MapFileLight, ImageShadow, RecoveryWork, EffSandarsWork
 - `WinPartyData` (0x24 bytes, 12 accesses): same size: TEXHeader, MapError, BattleAudienceSound, BattleWorkTarget, CameraParams, NpcAiInfo, MessageWork, effScanningData
 - `NpcAiTypeTable` (0x24 bytes, 10 accesses): same size: TEXHeader, MapError, BattleAudienceSound, BattleWorkTarget, CameraParams, NpcAiInfo, MessageWork, effScanningData
@@ -129,18 +128,13 @@
 
 - `BattleWorkUnit.movement_params` (16): source/tot_custom_boss1.cpp:2688, source/tot_custom_boss1.cpp:2693, source/tot_custom_boss1.cpp:2727, source/tot_custom_boss1.cpp:2766 ...
 - `BattleWorkCommandWeapon.icon` (13): source/patches_mario_move.cpp:276, source/tot_party_bobbery.cpp:74, source/tot_party_flurrie.cpp:76, source/tot_party_goombella.cpp:92 ...
-- `BattleWork.ac_manager_work` (12): source/patches_battle.cpp:927, source/patches_battle.cpp:1111, source/patches_battle.cpp:1690, source/patches_battle.cpp:1691 ...
-- `BattleWorkUnit.pad_00f` (4): source/patches_enemy.cpp:342, source/patches_item.cpp:874, source/patches_item.cpp:875, source/patches_item.cpp:875
-- `BattleWork.act_record_work` (3): source/patches_battle.cpp:1258, source/patches_battle_seq.cpp:238, source/patches_stats.cpp:114
-- `BattleWorkTarget.fg_or_bg_layer` (3): source/patches_battle.cpp:1457, source/patches_battle.cpp:1584, source/patches_battle.cpp:1584
-- `BattleWorkUnit.last_attacker_weapon` (3): source/patches_battle.cpp:1767, source/patches_battle.cpp:1772, source/patches_battle.cpp:1921
-- `BattleWorkUnit.last_target_weapon_cr_flags` (3): source/patches_battle.cpp:1769, source/patches_battle.cpp:1775, source/tot_custom_bobomb.cpp:774
-- `BattleWorkUnit.last_target_weapon` (2): source/patches_battle.cpp:1768, source/patches_battle.cpp:1773
+- `BattleWork.ac_manager_work` (12): source/patches_battle.cpp:928, source/patches_battle.cpp:1112, source/patches_battle.cpp:1691, source/patches_battle.cpp:1692 ...
+- `BattleWork.act_record_work` (3): source/patches_battle.cpp:1259, source/patches_battle_seq.cpp:238, source/patches_stats.cpp:114
+- `BattleWorkTarget.fg_or_bg_layer` (3): source/patches_battle.cpp:1458, source/patches_battle.cpp:1585, source/patches_battle.cpp:1585
 - `BattleWorkCommand.unk_54c` (2): source/patches_battle_seq.cpp:671, source/patches_battle_seq.cpp:673
-- `BattleWorkUnitPart.movement_params` (1): source/patches_battle.cpp:1416
-- `BattleWorkActionCommandManager.ac_difficulty` (1): source/patches_battle.cpp:1691
-- `EffGonbabaBreathWork.velocity` (1): source/patches_battle.cpp:2347
+- `BattleWorkUnitPart.movement_params` (1): source/patches_battle.cpp:1417
+- `BattleWorkActionCommandManager.ac_difficulty` (1): source/patches_battle.cpp:1692
+- `EffGonbabaBreathWork.velocity` (1): source/patches_battle.cpp:2348
 - `OSModuleInfo.prolog` (1): source/patches_core.cpp:428
 - `OSModuleInfo.epilog` (1): source/patches_core.cpp:439
-- `BattleUnitKind.itemsteal_param` (1): source/patches_enemy.cpp:134
-- `BattleWorkUnit.poison_damage` (1): source/patches_enemy.cpp:269
+- `BattleUnitKind.itemsteal_param` (1): source/patches_enemy.cpp:135

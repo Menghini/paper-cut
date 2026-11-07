@@ -19,6 +19,17 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.a
 
 # (file under the converted tree, old text, new text, why)
 EDITS = [
+    ("source/patches_enemy.cpp",
+     "BattleWorkUnit* unit = g_BtlUnit_Entry_trampoline(unit_setup);",
+     "BattleWorkUnit* unit = g_BtlUnit_Entry_trampoline(unit_setup);\n"
+     "            // PC: ToT's added unit fields (side_fields.py) start at zero,\n"
+     "            // as its patched allocation's memset left them\n"
+     "            if (unit) TotSideReset_BattleWorkUnit(unit);",
+     "a new battle unit's side fields"),
+    ("source/patches_enemy.cpp",
+     "return g_BtlUnit_Delete_trampoline(unit);",
+     "TotSideReset_BattleWorkUnit(unit);\n            return g_BtlUnit_Delete_trampoline(unit);",
+     "a deleted battle unit's side fields"),
 ]
 
 

@@ -7,6 +7,7 @@ mod") describes for the Practice Codes and the TTYD AP mod:
   1. fetch ToT at the pinned commit (or use --tot DIR, a checkout)
   2. copy its mod source (ttyd-tools/rel) to mods/tower-of-trials/tot/
   3. port/pause_extra.py                (ToT's re-laid-out pause menu fields: a struct of its own)
+     port/side_fields.py                (fields ToT adds to game structs: beside each object)
      tools/port/mod_fields.py --apply   (struct fields onto the decomp's names)
   4. port/designators.py                (the same, in data tables' .field = ...)
      port/leftovers.py                  (accesses the AST pass didn't reach, by unique name)
@@ -80,6 +81,7 @@ def main():
 
     py = sys.executable
     run([py, os.path.join(HERE, "pause_extra.py"), "--tot", work])
+    run([py, os.path.join(HERE, "side_fields.py"), "--tot", work])
     if not a.skip_fields:
         run([py, os.path.join(TOOLS, "mod_fields.py"), "--mod", work, "--include", "include",
              "--define", "TTYD_US", "--version", "G8ME01", "--report", os.path.join(MOD, "FIELDS.md"),

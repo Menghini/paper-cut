@@ -23,6 +23,11 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.a
 sys.path.insert(0, os.path.join(ROOT, "tools", "port"))
 import mod_fields  # noqa: E402
 
+# ToT's sub-structs inside game structs that the decomp lays out as the
+# game struct's own fields (BattleWorkUnit.movement_params.move_frames is
+# BattleUnit.moveFrames): renamed by offset and size, at any depth
+SUBSTRUCTS = {"movement_params", "ac_manager_work", "act_record_work"}
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -43,6 +48,11 @@ def main():
 
     # every field name the mod's own headers declare outside the game's structs
     own = set()
+    # ...and inside the sources' own structs and classes
+    for src in glob.glob(os.path.join(a.mod, "source", "*.cpp")):
+        text = open(src, encoding="utf-8").read()
+        for body in re.findall(r"\b(?:struct|class|union)\s+\w+\s*(?::[^{;]*)?\{(.*?)\n\};", text, re.S):
+            own |= set(re.findall(r"^\s+[\w:<>\*\s]+?\b(\w+)\s*(?:\[[^\]]*\])?\s*(?:=[^;]*)?;", body, re.M))
     for h in glob.glob(os.path.join(a.mod, "include", "*.h")):
         own |= set(re.findall(r"^\s+[\w:<>\*\s]+?\b(\w+)\s*(?:\[[^\]]*\])?\s*(?:=[^;]*)?;", open(h, encoding="utf-8").read(),
                               re.M))
@@ -54,10 +64,37 @@ def main():
                 continue
             hit = mod_fields.map_field(lay, dec_lay[dec], path) if dec in dec_lay else None
             targets[path].add(hit[0] if hit else None)
+    # a name the decomp also uses for a field (count, timer...) may be one
+    # of its structs' already, reached through another path: left alone
+    decomp_names = set()
+    for lay in dec_lay.values():
+        decomp_names |= {p.split(".")[-1].split("[")[0] for p, _, _, _ in mod_fields.flatten(lay)}
     renames = {name: next(iter(t)) for name, t in targets.items()
                if len(t) == 1 and None not in t and next(iter(t)) != name and name not in own
-               and len(name) > 4 and not re.match(r"^(unk|pad)_", name)}
-    if not renames:
+               and name not in decomp_names and len(name) >= 8 and not re.match(r"^(unk|pad)_", name)
+               and "." not in next(iter(t))}
+    # x->movement_params.move_frames: ToT's sub-struct, the decomp's own
+    # fields at the same offsets (moveFrames): by offset and size, one level
+    nested = {}
+    for rec, lay in sorted(mod_lay.items(), key=lambda kv: kv[0] != "BattleWorkUnit"):
+        dec = aliases.get(rec, rec)
+        if dec not in dec_lay:
+            continue
+        dflat = mod_fields.flatten(dec_lay[dec])
+        for path, off, size, typ in mod_fields.flatten(lay):
+            outer = path.split(".")[0]
+            if "." not in path or outer not in SUBSTRUCTS:
+                continue
+            same = [p for p, o, sz, _ in dflat if o == off and sz == size]
+            if not same:
+                # a size that counts the padding after the field: the same type there
+                same = [p for p, o, _, t in dflat if o == off and
+                        mod_fields.canon(t, aliases) == mod_fields.canon(typ, aliases)]
+            inner = path.split(".", 1)[1]
+            # the first struct's mapping wins (BattleWorkUnit before its parts)
+            if same and inner not in nested.get(outer, {}):
+                nested.setdefault(outer, {})[inner] = min(same, key=lambda p: p.count("."))
+    if not renames and not nested:
         print("leftovers.py: nothing to rename")
         return
     pat = re.compile(r"(->|\.)(%s)\b(?!\s*\()" % "|".join(map(re.escape, sorted(renames, key=len, reverse=True))))
@@ -77,7 +114,21 @@ def main():
         if new != text:
             open(src, "w", encoding="utf-8").write(new)
             count += n[0]
-    print("leftovers.py: %d accesses renamed (%d names known)" % (count, len(renames)))
+    ncount = 0
+    for src in glob.glob(os.path.join(a.mod, "source", "*.cpp")):
+        text = open(src, encoding="utf-8").read()
+        new = text
+        for outer, inner in nested.items():
+            # the longest inner path first (movement_params.sounds.walk_sound_left)
+            new = re.sub(r"(->|\.)%s\.(\w+(?:\.\w+)*)\b" % re.escape(outer),
+                         lambda m: next((m.group(1) + inner[k] + m.group(2)[len(k):]
+                                         for k in sorted(inner, key=len, reverse=True)
+                                         if m.group(2) == k or m.group(2).startswith(k + ".")), m.group(0)), new)
+        if new != text:
+            ncount += 1
+            open(src, "w", encoding="utf-8").write(new)
+    print("leftovers.py: %d accesses renamed (%d names known); sub-structs %s in %d files"
+          % (count, len(renames), ", ".join(sorted(nested)) or "none", ncount))
 
 
 if __name__ == "__main__":
