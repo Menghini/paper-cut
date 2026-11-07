@@ -134,6 +134,45 @@ def fixups(tot):
         new = re.sub(r"ttydAs<\s*const char\s*\*\s*>\(([\w\.\->\[\]]*?\bentry\[\d\])\)", r"\1.name0", new)
         if new != text:
             open(path, "w", encoding="utf-8").write(new)
+    # small spellings the PC headers differ on, and casts C++ refuses on the
+    # PC's 64-bit pointers (ToT stored function pointers in 32-bit words for
+    # code patches, which the port skips anyway; an id field read as uintptr)
+    for path in glob.glob(os.path.join(tot, "source", "*.cpp")):
+        text = open(path, encoding="utf-8").read()
+        new = re.sub(r"\b_GXColor\b", "GXColor", text)
+        new = re.sub(r"reinterpret_cast<\s*(u?intptr_t)\s*>\(", r"(\1)(", new)
+        new = re.sub(r"reinterpret_cast<\s*(u?int32_t)\s*>\(", r"(\1)(uintptr_t)(", new)
+        # BattleUnit/Part's word arrays: ToT's integers (unit_work, parts_work) are the
+        # decomp's EvtWord work[], not its void* view
+        new = re.sub(r"(->|\.)workPtr\[", r"\1work[", new)
+        # evt->wActorThisPtr was always the actor's unit id (the decomp's s32 unitId),
+        # never a pointer: read as the id it is
+        new = re.sub(r"ttydAs<\s*void\s*\*\s*>\(([\w\.\->]*?unitId)\)", r"(\1)", new)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
+    # mod_headers.py makes a game variable a macro (#define icon_id
+    # ttyd_var_icon_id); where the name is also a struct field or a namespace
+    # of ToT's (item->icon_id, ttyd::unit_koura::unit_koura), the macro goes
+    # and a qualified use names the bound variable itself
+    members = set()
+    for path in srcs:
+        members |= set(re.findall(r"(?:->|\.)(\w+)", open(path, encoding="utf-8").read()))
+    nsnames = set(re.findall(r"namespace\s+ttyd::(\w+)", "".join(open(p, encoding="utf-8").read() for p in srcs)))
+    for path in glob.glob(os.path.join(tot, "include", "**", "*.h"), recursive=True):
+        text = open(path, encoding="utf-8").read()
+        drop = [n for n in re.findall(r"#define (\w+) ttyd_var_\1\b", text) if n in members or n in nsnames]
+        if not drop:
+            continue
+        for n in drop:
+            text = re.sub(r"[ \t]*#define %s ttyd_var_%s\n" % (n, n), "", text)
+        open(path, "w", encoding="utf-8").write(text)
+        for src in srcs:
+            st = open(src, encoding="utf-8").read()
+            nt = st
+            for n in drop:
+                nt = re.sub(r"((?:::)?ttyd::\w+::)%s\b(?!\s*::)" % n, r"\1ttyd_var_%s" % n, nt)
+            if nt != st:
+                open(src, "w", encoding="utf-8").write(nt)
     # every ttyd:: namespace the mod names exists, even one whose header
     # mod_headers.py emptied (its declarations are the decomp's now)
     os.makedirs(os.path.join(tot, "generated"), exist_ok=True)

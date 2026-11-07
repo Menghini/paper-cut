@@ -49,7 +49,10 @@ def cast_to(mtyp, dtyp, aliases):
     if mod_fields.BITFIELD in (mtyp, dtyp) or "[" in dtyp or "unnamed" in dtyp or "anonymous" in dtyp \
             or dtyp.startswith("<"):
         return None
-    if mod_fields.canon(mtyp, aliases) == mod_fields.canon(dtyp, aliases):
+    def plain(t):
+        # without namespaces: ToT's ttyd::battle_database_common::BattleWeapon is the decomp's BattleWeapon
+        return re.sub(r"\b(?:\w+::)+", "", mod_fields.canon(t, aliases))
+    if plain(mtyp) == plain(dtyp):
         return None
     return re.sub(r"\b(?:struct|union|enum|class)\s+", "", dtyp)
 
@@ -66,9 +69,8 @@ def value_end(text, i, end):
             while i < end and text[i] != q:
                 i += 2 if text[i] == "\\" else 1
         elif text.startswith("//", i):
+            # a comment inside a value spanning lines (`A |  // why\n B`) is part of it
             j = text.find("\n", i)
-            if depth == 0:
-                return i
             i = j if j >= 0 else end
             continue
         elif c in "([{":
