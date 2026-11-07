@@ -79,14 +79,16 @@ inline void writeBranchPair(void* original_start, void*, void*) {
 // macro so the name is known (a template only sees an address, and on Windows
 // a library's address of a game function is an import thunk).
 // ToT's hook lambdas take its own types (bool for the game's BOOL, its own
-// struct names), as ttyd-tools' hookFunction allowed: a lambda that doesn't
-// convert to the decomp's type goes in as its own function pointer, and the
-// game's function comes back as whatever pointer the trampoline variable is
-// (ttyd_mod/compat.h's TtydOriginal).
-template <typename Func, typename Dest>
-TtydOriginal hookFunctionNamed(const char* name, Func, Dest destination) {
-    if constexpr (std::is_convertible_v<Dest, Func>) {
-        return ttydHookFunction(name, static_cast<Func>(destination));
+// struct names), as ttyd-tools' hookFunction allowed: the replacement goes in
+// as its own function pointer (a captureless lambda's, +dest), and the game's
+// function comes back as whatever pointer the trampoline variable is
+// (ttyd_mod/compat.h's TtydOriginal). Only the game function's name is used:
+// Paper Cut's hook slots are found by name, and the function itself may be
+// overloaded (ttyd_mod/game_loose.h's adapters), so its type isn't deduced.
+template <typename Dest>
+TtydOriginal hookFunctionNamed(const char* name, Dest destination) {
+    if constexpr (std::is_pointer_v<Dest>) {
+        return ttydHookFunction(name, destination);
     } else {
         return ttydHookFunction(name, +destination);
     }
@@ -94,4 +96,4 @@ TtydOriginal hookFunctionNamed(const char* name, Func, Dest destination) {
 
 }  // namespace mod
 
-#define hookFunction(fn, ...) hookFunctionNamed(#fn, fn, __VA_ARGS__)
+#define hookFunction(fn, ...) hookFunctionNamed(#fn, __VA_ARGS__)

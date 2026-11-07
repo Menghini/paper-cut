@@ -60,8 +60,21 @@ def main():
     ap.add_argument("--build", default=os.path.join(ROOT, "build-pc-us-aurora"))
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--errors", default=os.path.join(MOD, "tot", "errors.txt"))
+    ap.add_argument("--file", help="compile this one source and print clang's full output (notes included)")
     a = ap.parse_args()
     fl = flags(a.build)
+    if a.file:
+        r = subprocess.run([os.environ.get("CLANGXX", "clang++"), "-x", "c++", *fl, a.file],
+                           capture_output=True, text=True, errors="replace")
+        # Paper Cut's own headers' errors first in every file: left out
+        out, skip = [], False
+        for ln in r.stderr.splitlines():
+            if " error: " in ln:
+                skip = "/port/include/" in ln.split(" error: ")[0].replace("\\", "/")
+            if not skip:
+                out.append(ln)
+        print("\n".join(out))
+        return
     srcs = sorted(glob.glob(os.path.join(MOD, "tot", "source", "*.cpp")) +
                   glob.glob(os.path.join(MOD, "tot", "generated", "*.cpp")) +
                   glob.glob(os.path.join(HERE, "src", "*.cpp")))
