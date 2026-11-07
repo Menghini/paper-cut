@@ -110,13 +110,26 @@ def main():
     # and a function a game header declares is no file's static
     for h in glob.glob(os.path.join(ROOT, "include", "**", "*.h"), recursive=True):
         nonstatic |= set(re.findall(r"\b(\w+)\s*\([^;{}()]*\)\s*;", open(h, encoding="utf-8", errors="replace").read()))
+    # ToT's names mod_headers.py mapped onto the decomp's by address
+    # (`#define _evt_shop_get_ptr get_ptr`): the decomp's name is the one called
+    renamed = {}
+    for path in glob.glob(os.path.join(a.tot, "include", "**", "*.h"), recursive=True):
+        for m in re.finditer(r"^\s*#define (\w+) (\w+)\s*$", open(path, encoding="utf-8").read(), re.M):
+            renamed[m.group(1)] = m.group(2)
     found, missing, data = [], [], []
     for line in open(os.path.join(a.tot, "include", "ttyd.us.lst"), encoding="utf-8", errors="replace"):
         line = line.strip()
         m = re.match(r"^([0-9A-Fa-f]{8}):(\w+)$", line)
-        if not m or m.group(2) not in used or m.group(2) not in statics or m.group(2) in nonstatic:
+        if not m:
             continue
-        addr, name = int(m.group(1), 16), m.group(2)
+        name = m.group(2)
+        if name in used and name in renamed:
+            name = renamed[name]
+        elif name not in used:
+            continue
+        if name not in statics or name in nonstatic:
+            continue
+        addr = int(m.group(1), 16)
         in_text = any(lo <= addr < hi for lo, hi, _ in ranges)
         if not in_text:
             # file-local data: a ToT header binds it by its plain name
