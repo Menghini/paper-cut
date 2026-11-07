@@ -26,3 +26,6 @@ MovementSoundData.dive_sound_right=entry[2].name1
 MovementSoundData.dive_initial_wait_timer=entry[2].delay
 MovementSoundData.dive_repeat_wait_timer_left=entry[2].period0
 MovementSoundData.dive_repeat_wait_timer_right=entry[2].period1
+BattleWorkTarget.fg_or_bg_layer=side
+BattleWorkActionCommandManager.ac_difficulty=acDifficulty
+BattleWeapon.attack_evt_code=attackEvtScript

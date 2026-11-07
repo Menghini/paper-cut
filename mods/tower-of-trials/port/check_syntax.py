@@ -78,7 +78,7 @@ def main():
     srcs = sorted(glob.glob(os.path.join(MOD, "tot", "source", "*.cpp")) +
                   glob.glob(os.path.join(MOD, "tot", "generated", "*.cpp")) +
                   glob.glob(os.path.join(HERE, "src", "*.cpp")))
-    srcs = [s for s in srcs if not re.search(r"[/\\]source[/\\](rel|cxx)\.cpp$", s)]
+    srcs = [s for s in srcs if not re.search(r"[/\\]source[/\\](rel|cxx|mod_gfxtest)\.cpp$", s)]
     clang = os.environ.get("CLANGXX", "clang++")
 
     def one(src):

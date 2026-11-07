@@ -35,17 +35,26 @@ ninja -C build-pc-us-aurora tower-of-trials
 
 ## Status (2026-11-07)
 
-- Conversion pipeline: runs end to end.
-- Struct fields: 5,247 accesses and 14,118 table fields renamed automatically; 125 + 123 left (`FIELDS.md`, `DESIGNATORS.md`).
-- Compile: 992 errors left in ToT's code (from 10,545 at the first run). Most are in ToT's custom pause-menu windows
-  (`tot_window_*.cpp`, built on structs the decomp names differently) and ToT's own `gx/GXCommon.h`.
-  `check_syntax.py` also counts errors from Paper Cut's own `ttyd_mod/game_loose.h` (`decltype(&sin)` with
-  libstdc++'s overloads, on Linux): the same 7 in every file, not ToT's.
+- **Conversion: every ToT source compiles** (`check_syntax.py`: 0 errors in ToT's code, 94 files), with this
+  sandbox's approximate Aurora flags. Rerun `port_tot.py` and `check_syntax.py` after configuring the real US
+  Aurora build to confirm, then build and link the library.
+- `check_syntax.py` also reports errors from Paper Cut's own `ttyd_mod/game_loose.h` on Linux (`decltype(&sin)`
+  with libstdc++'s overloads): the same 7 in every file, not ToT's; Paper Cut itself needs that fixed for Linux
+  library mods (Windows is what Paper Cut tests mods on).
+- Linked and run: not yet. Expect link errors next (functions ToT declares that the game doesn't export) and
+  then the runtime work below.
 - Hooks (`INVENTORY.md`): ToT patches 197 game functions; 109 have a Paper Cut hook slot, 87 need one added to
   `port/mods/hooks.spec` (then `tools/port/gen_hooks.py --apply`). Its 263 `writeBranch*`/`writePatch` sites on code
-  are skipped by the port and each needs redoing as a hook.
-- Not started: ToT's assets. Its maps, text (`msg/US`) and icons come from its patcher, not its repository; they'll
-  be taken from an ISO patched with ToT's patcher into this mod's `overlay/`.
+  are skipped by the port (they log) and each needs redoing as a hook.
+- ToT's own area: ToT's REL *is* Hooktail Castle's (`gon`): its maps (`tot_gon_*.cpp`) replace the game's. On the PC
+  they are to be registered as the mod's maps; ToT's REL loader (`patches_core.cpp` LoadMap) is replaced by a stub.
+- Assets: ToT's maps, text (`msg/US`) and icons come from its patcher, not its repository; they'll be taken from an
+  ISO patched with ToT's patcher into this mod's `overlay/`.
+
+What the conversion does beyond Paper Cut's tools, and why, is in each `port/*.py`'s header. Things worth knowing:
+ToT's pause-menu fields (`pause_extra.py`) and the fields it adds to battle units (`side_fields.py`) live beside the
+game's structs; ToT's RGBA colors are converted by value (`tot_byvalue_helpers.h`), never reinterpreted; ToT's
+`wActorThisPtr` is read as the unit id it is.
 
 ## Plan
 

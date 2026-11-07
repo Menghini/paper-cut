@@ -17,8 +17,9 @@ file(GLOB _tot_srcs CONFIGURE_DEPENDS
     ${_tot}/generated/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/port/src/*.cpp)
 # GameCube-only: the REL's runtime (prolog/epilog, C++ runtime for a REL);
-# the library has its own (port/src/entry.cpp is the entry point)
-list(FILTER _tot_srcs EXCLUDE REGEX "/source/(rel|cxx)\\.cpp$")
+# the library has its own (port/src/entry.cpp is the entry point). And ToT's
+# GX drawing test (a debug tool, GameCube display lists).
+list(FILTER _tot_srcs EXCLUDE REGEX "/source/(rel|cxx|mod_gfxtest)\\.cpp$")
 
 ttyd_add_mod(tower-of-trials ${_tot_srcs})
 target_include_directories(tower-of-trials PRIVATE

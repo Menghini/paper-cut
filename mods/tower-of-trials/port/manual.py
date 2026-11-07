@@ -19,6 +19,45 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.a
 
 # (file under the converted tree, old text, new text, why)
 EDITS = [
+    ("source/patches_battle_seq.cpp",
+     "command_work->unk_54c[0x558 - 0x54c] = 1;",
+     "command_work->attackAudience = 1;  // PC: the byte at 0x558, the decomp's attackAudience",
+     "audience attack flag (1)"),
+    ("source/patches_battle_seq.cpp",
+     "command_work->unk_54c[0x558 - 0x54c] = 2;",
+     "command_work->attackAudience = 2;",
+     "audience attack flag (2)"),
+    ("source/tot_custom_gold_fuzzy.cpp", "poseWork->anim_frame = ",
+     "poseWork->texId = ", "the decomp's ExtdrvPose names (1)"),
+    ("source/tot_custom_gold_fuzzy.cpp", "poseWork->facing_dir = 90.0f;",
+     "poseWork->dir = 90.0f;", "the decomp's ExtdrvPose names (2)"),
+    ("source/common_functions.cpp",
+     "    const ttyd::seqdrv::SeqIndex next_seq = ttyd::seqdrv::seqGetNextSeq();\n"
+     "    const ttyd::seqdrv::SeqIndex cur_seq = ttyd::seqdrv::seqGetSeq();",
+     "    // PC: the decomp's SequenceType, as ToT's SeqIndex\n"
+     "    const auto next_seq = static_cast<ttyd::seqdrv::SeqIndex>(ttyd::seqdrv::seqGetNextSeq());\n"
+     "    const auto cur_seq = static_cast<ttyd::seqdrv::SeqIndex>(ttyd::seqdrv::seqGetSeq());",
+     "sequence checks"),
+    ("source/patches_battle.cpp",
+     "work->velocity.x *= -1.0f;",
+     "work->velX *= -1.0f;  // PC: the decomp's EffGonbabaBreathWork has velX/velY",
+     "Hooktail's breath direction"),
+    ("source/tot_party_yoshi.cpp",
+     "ttyd::battle_disp::btlDispTexPlane(\n"
+     "        yoshi->position.x, yoshi->position.y + y_offset, yoshi->position.z,\n"
+     "        x_scale, yoshi->scale, kYoshiTplFrames[yoshi->frame], &color);",
+     "// PC: the decomp's argument order (the GameCube passed the floats apart)\n"
+     "    ::btlDispTexPlane(\n"
+     "        kYoshiTplFrames[yoshi->frame], tot_port::ByValue<GXColor>(&color), 0,\n"
+     "        yoshi->position.x, yoshi->position.y + y_offset, yoshi->position.z,\n"
+     "        x_scale, yoshi->scale);",
+     "Stampede's Yoshi sprites"),
+    ("source/patches_core.cpp",
+     "    int32_t mapLoad() { return mod::tot::patch::core::LoadMap(); }\n"
+     "    void onMapUnload() { mod::tot::patch::core::OnMapUnloaded(); }\n",
+     "    // PC: mapLoad/onMapUnload were what the skipped seq_mapChangeMain\n"
+     "    // branch called (and mapLoad is the game's own function's name)\n",
+     "the REL loader's assembly entry points"),
     ("source/patches_enemy.cpp",
      "BattleWorkUnit* unit = g_BtlUnit_Entry_trampoline(unit_setup);",
      "BattleWorkUnit* unit = g_BtlUnit_Entry_trampoline(unit_setup);\n"
@@ -31,6 +70,46 @@ EDITS = [
      "TotSideReset_BattleWorkUnit(unit);\n            return g_BtlUnit_Delete_trampoline(unit);",
      "a deleted battle unit's side fields"),
 ]
+
+
+# (file, the function's first line, its new body (the whole definition), why):
+# a function replaced whole, from its first line to the `}` closing it
+FUNCTIONS = [
+    ("source/patches_core.cpp", "int32_t LoadMap() {",
+     """int32_t LoadMap() {
+    // PC: ToT's own area-module loader (its REL took the game's module slot,
+    // so area RELs went on the heap, linked by hand) has no place on the PC:
+    // the RELs are part of the game and the game loads its areas itself, and
+    // the branch into seq_mapChangeMain that called this is skipped. What it
+    // did for the tower itself (refresh the completion progress on each gon
+    // map, title-screen handling) is to be hooked anew (README: phase 2).
+    if (!strcmp(ttyd::seq_mapchange::NextArea, "gon")) {
+        ProgressManager::RefreshCache();
+        ProgressManager::GetOverallProgression();
+    }
+    return 1;
+}""", "the GameCube REL loader"),
+    ("source/patches_core.cpp", "void OnMapUnloaded() {",
+     """void OnMapUnloaded() {
+    // PC: the game unloads its own areas (see LoadMap).
+}""", "the GameCube REL unloader"),
+]
+
+
+def replace_function(text, first, body):
+    at = text.find(first)
+    if at < 0 or text.find(first, at + 1) >= 0:
+        return None
+    depth, i = 0, at
+    while i < len(text):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[:at] + body + text[i + 1:]
+        i += 1
+    return None
 
 
 def fixups(tot):
@@ -71,7 +150,7 @@ def fixups(tot):
     # unit_AtomicBoo, ...): those are the mod's, declared plainly again
     defined = set()
     for path in glob.glob(os.path.join(tot, "source", "*.cpp")):
-        defined |= set(re.findall(r"^[\w:<>\s\*]*?\b(\w+)\s*(?:\[[^\]]*\])?\s*=\s*\{", open(path, encoding="utf-8").read(), re.M))
+        defined |= set(re.findall(r"^[A-Za-z][\w:<>\s\*]*?\b(\w+)\s*(?:\[[^\]]*\])?\s*=[^=]", open(path, encoding="utf-8").read(), re.M))
     bind = re.compile(r"[ \t]*#define (\w+) ttyd_var_\1\n([ \t]*)extern \"C\+\+\" inline ([^\n]+?)& ttyd_var_\1 = "
                       r"ttydGameVar<[^\n]+>\(\"\1\"\);")
     unbound = 0
@@ -150,6 +229,24 @@ def fixups(tot):
         new = re.sub(r"ttydAs<\s*void\s*\*\s*>\(([\w\.\->]*?unitId)\)", r"(\1)", new)
         if new != text:
             open(path, "w", encoding="utf-8").write(new)
+    # more spellings: ToT's script getters return the PC's script words; the
+    # decomp's memory macros add the heap themselves; ToT's GX namespaces are
+    # the SDK's functions; ToT's own variables defined with any initializer
+    for path in srcs:
+        text = open(path, encoding="utf-8").read()
+        new = re.sub(r"\bconst int32_t\s*\*\s*(Get\w*Evt\w*)\s*\(", r"const EvtWord* \1(", text)
+        # (the parenthesized name calls the function, not the decomp's macro, which
+        # would name the heap as a plain global: a DLL can't import data)
+        new = re.sub(r"(?:ttyd::memory::)?(_mapAlloc|_mapAllocTail|_mapFree)\(\s*(?:ttyd::memory::)?mapalloc_base_ptr\s*,",
+                     r"(\1)(ttyd::memory::mapalloc_base_ptr,", new)
+        new = re.sub(r"\bttyd::gx::GX\w+::(GX\w+)\s*\(", r"\1(", new)
+        new = re.sub(r"\bGX_(Position|Color|TexCoord|Normal)(\d\w*)\s*\(", r"GX\1\2(", new)
+        # a move's attack script given as (void*): the PC's script words
+        new = re.sub(r"(\.attackEvtScript\s*=\s*)\(void\s*\*\)", r"\1(EvtWord*)", new)
+        # a designator given a game function through (void*): the function's own pointer
+        new = re.sub(r"(\.\w+\s*=\s*)\(void\s*\*\)\s*(static_cast<ttyd_fn_\w+>)", r"\1\2", new)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
     # mod_headers.py makes a game variable a macro (#define icon_id
     # ttyd_var_icon_id); where the name is also a struct field or a namespace
     # of ToT's (item->icon_id, ttyd::unit_koura::unit_koura), the macro goes
@@ -221,7 +318,16 @@ def main():
             bad += 1
             continue
         open(full, "w", encoding="utf-8").write(text.replace(old, new))
-    print("manual.py: %d edits, %d failed" % (len(EDITS), bad))
+    for path, first, body, why in FUNCTIONS:
+        full = os.path.join(a.tot, path)
+        text = open(full, encoding="utf-8").read()
+        new = replace_function(text, first, body)
+        if new is None:
+            print("manual.py: %s: `%s` not found once (%s)" % (path, first, why))
+            bad += 1
+            continue
+        open(full, "w", encoding="utf-8").write(new)
+    print("manual.py: %d edits, %d functions, %d failed" % (len(EDITS), len(FUNCTIONS), bad))
     sys.exit(1 if bad else 0)
 
 
