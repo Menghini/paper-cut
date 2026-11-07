@@ -29,4 +29,5 @@ target_compile_features(tower-of-trials PRIVATE cxx_std_20)
 target_compile_options(tower-of-trials PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ttyd_mod/game_loose.h>"
     "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ttyd_mod/vars.h>"
-    "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${_tot}/generated/tot_namespaces.h>")
+    "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${_tot}/generated/tot_namespaces.h>"
+    "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${_tot}/generated/tot_byvalue.h>")

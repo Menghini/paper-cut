@@ -51,7 +51,8 @@ def flags(build):
     return keep + ["-std=gnu++20", "-fsyntax-only", "-w", "-ferror-limit=0", "-DTTYD_US=1",
                    "-I" + os.path.join(HERE, "include"), "-I" + os.path.join(tot, "include"),
                    "-include", "ttyd_mod/game_loose.h", "-include", "ttyd_mod/vars.h",
-                   "-include", os.path.join(tot, "generated", "tot_namespaces.h")]
+                   "-include", os.path.join(tot, "generated", "tot_namespaces.h"),
+                   "-include", os.path.join(tot, "generated", "tot_byvalue.h")]
 
 
 def main():

@@ -6,12 +6,14 @@ mod") describes for the Practice Codes and the TTYD AP mod:
 
   1. fetch ToT at the pinned commit (or use --tot DIR, a checkout)
   2. copy its mod source (ttyd-tools/rel) to mods/tower-of-trials/tot/
-  3. tools/port/mod_fields.py --apply   (struct fields onto the decomp's names)
+  3. port/pause_extra.py                (ToT's re-laid-out pause menu fields: a struct of its own)
+     tools/port/mod_fields.py --apply   (struct fields onto the decomp's names)
   4. port/designators.py                (the same, in data tables' .field = ...)
   5. tools/port/mod_headers.py          (ToT's game headers become shims)
   6. tools/port/mod_asm_stubs.py        (PowerPC .s routines become stubs)
   7. port/include/patch.h over ToT's    (hooks through Paper Cut's slots)
   8. port/manual.py                     (the hand-ported edits, exact text)
+     port/byvalue.py                    (struct-by-address calls onto by-value prototypes)
   9. port/inventory.py                  (INVENTORY.md: what is left to hook)
 
   python mods/tower-of-trials/port/port_tot.py [--tot DIR] [--build build-pc-us-aurora]
@@ -76,6 +78,7 @@ def main():
     shutil.copytree(rel, work, ignore=shutil.ignore_patterns("*.raw", "*.pnproj", "Makefile"))
 
     py = sys.executable
+    run([py, os.path.join(HERE, "pause_extra.py"), "--tot", work])
     if not a.skip_fields:
         run([py, os.path.join(TOOLS, "mod_fields.py"), "--mod", work, "--include", "include",
              "--define", "TTYD_US", "--version", "G8ME01", "--report", os.path.join(MOD, "FIELDS.md"),
@@ -103,6 +106,8 @@ def main():
     os.remove(os.path.join(work, "source", "patch.cpp"))
 
     run([py, os.path.join(HERE, "manual.py"), "--tot", work])
+    run([py, os.path.join(HERE, "byvalue.py"), "--tot", work,
+         "--out", os.path.join(work, "generated", "tot_byvalue.h")])
 
     run([py, os.path.join(HERE, "inventory.py"), "--tot", rel, "--pc", ROOT,
          "--out", os.path.join(MOD, "INVENTORY.md")])

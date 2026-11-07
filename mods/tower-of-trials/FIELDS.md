@@ -2,8 +2,8 @@
 
 | Mod struct | Decomp struct | Mapped | Renamed | Cast | Unmapped |
 |---|---|---|---|---|---|
-| WinPauseMenu | WindowWork | 1068 | 1063 | 621 | 57 |
 | BattleWorkUnit | BattleUnit | 616 | 573 | 406 | 29 |
+| WinPauseMenu | WindowWork | 656 | 651 | 317 | 0 |
 | EvtEntry | EventEntry | 487 | 487 | 46 | 0 |
 | BattleWeapon | BattleWeapon | 425 | 386 | 159 | 0 |
 | vec3 | Vec | 836 | 0 | 0 | 0 |
@@ -93,11 +93,11 @@
 - `mtx34` (0x30 bytes, 146 accesses): same size: OSFontHeader, DVDCommandBlock, OSStopwatch, CounterWork, BattleUnitSetup, EffMahojinWork, PuniBalloonWork, EffGuruguruN64Work
 - `WinMgrSelectEntry` (0x3C bytes, 130 accesses): same size: DVDFileInfo, ItemGetWork, effMahorn2Data, EffCrystalN64Work, EffStoneSmokeN64Work, BeroEntry, WinMgrSelect
 - `ExtPoseWork` (0x20 bytes, 83 accesses): same size: OSModuleInfo, OSMessageQueue, DVDDiskID, DVDBB2, DVDDriveInfo, BattleGroupSetup, FirstStrikeInfo, MapFileHeader
-- `WinLogSubmenuInfo` (0x20 bytes, 79 accesses): same size: OSModuleInfo, OSMessageQueue, DVDDiskID, DVDBB2, DVDDriveInfo, BattleGroupSetup, FirstStrikeInfo, MapFileHeader
 - `WinMarioLinkData` (0x1C bytes, 66 accesses): same size: OSExecParams, BecSndWork, BattleWorkHpGauge, FieldBattleInfo, MapTexXform, MapTevCallbackInfo, MapObjectWork, BattleAudienceWindow
 - `WinMgrSelectEntryRow` (0x4 bytes, 53 accesses): same size: MapRawDL, MapFileLightTable, MapTexTable, MapMaterialNameTable, MarioMotHip, MarioMotKaze, MarioMotKpa, MapAnimTable
 - `WinLogTattleMenuWork` (0x30 bytes, 48 accesses): same size: OSFontHeader, DVDCommandBlock, OSStopwatch, CounterWork, BattleUnitSetup, EffMahojinWork, PuniBalloonWork, EffGuruguruN64Work
 - `MovementSoundData` (0x38 bytes, 39 accesses): same size: BtlPoseSoundTable, IconEntry, EffNokotarouWork, EffMagic1N64Work, EffRippleN64Work, PaperSoundBGM, ARAMEntry, AtmTeresa
+- `WinLogSubmenuInfo` (0x20 bytes, 27 accesses): same size: OSModuleInfo, OSMessageQueue, DVDDiskID, DVDBB2, DVDDriveInfo, BattleGroupSetup, FirstStrikeInfo, MapFileHeader
 - `StatusWinIconData` (0xC bytes, 20 accesses): same size: OSSemaphore, DVDDir, DVDDirEntry, Vec, MTXStack, CLUTHeader, TEXPalette, MayaAnimData
 - `BattleWorkCommandCursor` (0xC bytes, 18 accesses): same size: OSSemaphore, DVDDir, DVDDirEntry, Vec, MTXStack, CLUTHeader, TEXPalette, MayaAnimData
 - `WinLogTattleInfo` (0x2 bytes, 18 accesses): same size: WinSortEnt
@@ -127,12 +127,9 @@
 
 ## Accesses with no decomp field of the same offset and size
 
-- `WinPauseMenu.log_submenu_info` (31): source/tot_window_log.cpp:1247, source/tot_window_log.cpp:1257, source/tot_window_log.cpp:1258, source/tot_window_log.cpp:1259 ...
 - `BattleWorkUnit.movement_params` (16): source/tot_custom_boss1.cpp:2688, source/tot_custom_boss1.cpp:2693, source/tot_custom_boss1.cpp:2727, source/tot_custom_boss1.cpp:2766 ...
-- `WinPauseMenu.badge_log_ids` (14): source/patches_ui.cpp:1222, source/tot_window_log.cpp:213, source/tot_window_log.cpp:217, source/tot_window_log.cpp:228 ...
 - `BattleWorkCommandWeapon.icon` (13): source/patches_mario_move.cpp:276, source/tot_party_bobbery.cpp:74, source/tot_party_flurrie.cpp:76, source/tot_party_goombella.cpp:92 ...
 - `BattleWork.ac_manager_work` (12): source/patches_battle.cpp:927, source/patches_battle.cpp:1111, source/patches_battle.cpp:1690, source/patches_battle.cpp:1691 ...
-- `WinPauseMenu.recipe_log_ids` (12): source/patches_ui.cpp:1222, source/tot_window_log.cpp:258, source/tot_window_log.cpp:262, source/tot_window_log.cpp:273 ...
 - `BattleWorkUnit.pad_00f` (4): source/patches_enemy.cpp:342, source/patches_item.cpp:874, source/patches_item.cpp:875, source/patches_item.cpp:875
 - `BattleWork.act_record_work` (3): source/patches_battle.cpp:1258, source/patches_battle_seq.cpp:238, source/patches_stats.cpp:114
 - `BattleWorkTarget.fg_or_bg_layer` (3): source/patches_battle.cpp:1457, source/patches_battle.cpp:1584, source/patches_battle.cpp:1584
