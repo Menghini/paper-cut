@@ -1,0 +1,8 @@
+{
+  "id": "com.jdaster64.tower-of-trials",
+  "name": "Tower of Trials",
+  "version": "4.01-r62-port.0",
+  "author": "jdaster64 (Paper Cut port in progress)",
+  "description": "Hooktail Castle remodeled into a rogue-like tower: enemy floors, chest rewards, shops, bosses, run options and a Petalburg hub. A port of the GameCube mod; work in progress.",
+  "games": ["G8ME01"]
+}
