@@ -20,6 +20,10 @@ namespace mod {
 void main();
 }
 
+// tot/generated/tot_statics.cpp (port/statics.py): the game's file-local
+// functions ToT calls, bound to the pointers the game exports for them
+void TotBindStatics();
+
 namespace {
 
 bool g_Started = false;
@@ -29,6 +33,7 @@ void StartOnFirstFrame(void*) {
         return;
     }
     g_Started = true;
+    TotBindStatics();
     ttydGameVarsMissing();
     ttyd_mod_api->log("Tower of Trials: starting");
     mod::main();

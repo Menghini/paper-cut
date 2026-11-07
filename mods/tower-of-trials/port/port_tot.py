@@ -16,6 +16,7 @@ mod") describes for the Practice Codes and the TTYD AP mod:
   7. port/include/patch.h over ToT's    (hooks through Paper Cut's slots)
   8. port/manual.py                     (the hand-ported edits, exact text)
      port/byvalue.py                    (struct-by-address calls onto by-value prototypes)
+     port/statics.py                    (the game's file-local functions ToT calls: stubs)
   9. port/inventory.py                  (INVENTORY.md: what is left to hook)
 
   python mods/tower-of-trials/port/port_tot.py [--tot DIR] [--build build-pc-us-aurora]
@@ -120,6 +121,8 @@ def main():
         run([py, os.path.join(HERE, "manual.py"), "--tot", work])
         run([py, os.path.join(HERE, "byvalue.py"), "--tot", work,
              "--out", os.path.join(work, "generated", "tot_byvalue.h")])
+        run([py, os.path.join(HERE, "statics.py"), "--tot", work,
+             "--out", os.path.join(work, "generated", "tot_statics.cpp")])
         run([py, os.path.join(HERE, "inventory.py"), "--tot", rel, "--pc", ROOT,
              "--out", os.path.join(MOD, "INVENTORY.md")])
 
