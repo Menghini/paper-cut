@@ -313,6 +313,8 @@ def main():
         full = os.path.join(a.tot, path)
         text = open(full, encoding="utf-8").read()
         n = text.count(old)
+        if n == 0 and new in text:
+            continue  # applied already (the last step run again)
         if n != 1:
             print("manual.py: %s: expected the text once, found it %d times (%s)" % (path, n, why))
             bad += 1
@@ -321,6 +323,8 @@ def main():
     for path, first, body, why in FUNCTIONS:
         full = os.path.join(a.tot, path)
         text = open(full, encoding="utf-8").read()
+        if body in text:
+            continue  # replaced already
         new = replace_function(text, first, body)
         if new is None:
             print("manual.py: %s: `%s` not found once (%s)" % (path, first, why))

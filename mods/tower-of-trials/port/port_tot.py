@@ -117,7 +117,8 @@ def main():
         run([py, os.path.join(TOOLS, "mod_asm_stubs.py"), "--mod", work, "--asm", "source/asm/*.s",
              "--ported", os.path.join(HERE, "src", "*.cpp"), "--out", os.path.join(gen, "asm_stubs.cpp")])
         shutil.copy(os.path.join(HERE, "include", "patch.h"), os.path.join(work, "include", "patch.h"))
-        os.remove(os.path.join(work, "source", "patch.cpp"))
+        if os.path.exists(os.path.join(work, "source", "patch.cpp")):
+            os.remove(os.path.join(work, "source", "patch.cpp"))
         run([py, os.path.join(HERE, "manual.py"), "--tot", work])
         run([py, os.path.join(HERE, "byvalue.py"), "--tot", work,
              "--out", os.path.join(work, "generated", "tot_byvalue.h")])

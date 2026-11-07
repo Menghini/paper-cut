@@ -170,7 +170,7 @@ def main():
             srcs = by_name.get(m.group(2))
             if not srcs or len(srcs) != 1:
                 return m.group(0)
-            return "*static_cast<%s*>(ttydGameStatic(\"port_static__%s__%s\"))" % (
+            return "*static_cast<std::add_pointer_t<%s>>(ttydGameStatic(\"port_static__%s__%s\"))" % (
                 m.group(1), ident(next(iter(srcs))), m.group(2))
         new, n = re.subn(r'ttydGameVar<([^;"]+?)>\("(\w+)"\)', sub, text)
         if new != text:
