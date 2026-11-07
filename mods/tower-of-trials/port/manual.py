@@ -55,6 +55,51 @@ def fixups(tot):
                        if m.group(2) in loose else m.group(0), text)
         if new != text:
             open(path, "w", encoding="utf-8").write(new)
+    # mod_headers.py binds an extern variable to the game's of that name
+    # (ttydGameVar) when the game has one; ToT defines many itself (its own
+    # unit_AtomicBoo, ...): those are the mod's, declared plainly again
+    defined = set()
+    for path in glob.glob(os.path.join(tot, "source", "*.cpp")):
+        defined |= set(re.findall(r"^[\w:<>\s\*]*?\b(\w+)\s*(?:\[[^\]]*\])?\s*=\s*\{", open(path, encoding="utf-8").read(), re.M))
+    bind = re.compile(r"[ \t]*#define (\w+) ttyd_var_\1\n([ \t]*)extern \"C\+\+\" inline ([^\n]+?)& ttyd_var_\1 = "
+                      r"ttydGameVar<[^\n]+>\(\"\1\"\);")
+    unbound = 0
+    for path in srcs:
+        text = open(path, encoding="utf-8").read()
+        new = bind.sub(lambda m: "%sextern %s %s;" % (m.group(2), m.group(3), m.group(1))
+                       if m.group(1) in defined else m.group(0), text)
+        if new != text:
+            unbound += len(bind.findall(text)) - len(bind.findall(new))
+            open(path, "w", encoding="utf-8").write(new)
+    print("manual.py: %d of ToT's own variables unbound from the game's" % unbound)
+    # mod_fields.py's casts spell a type as clang printed it, relative to
+    # ToT's namespace (ttydAs<battle_database_common::BattleUnitKindPart *>):
+    # fully qualified, they mean the same anywhere
+    tns = set(used_ns)
+    tcast = re.compile(r"\b(ttyd(?:As|Part)<)([^<>]*(?:<[^<>]*>[^<>]*)*)>")
+
+    def qualify(m):
+        inner = re.sub(r"(?<![\w:])(%s)::" % "|".join(map(re.escape, sorted(tns, key=len, reverse=True))),
+                       r"::ttyd::\1::", m.group(2))
+        return m.group(1) + inner + ">"
+    for path in srcs:
+        text = open(path, encoding="utf-8").read()
+        new = tcast.sub(qualify, text) if tns else text
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
+    # ToT's gx headers re-declare SDK constants as enumerators (GX_NOP,
+    # GX_DRAW_QUADS...) that the PC's GX headers define as macros: the macros
+    # (same values) stand, the enumerators go
+    macros = set()
+    for d in ("extern/aurora/include", "port/include/aurora_overlay", "libs/dolsdk2004/include"):
+        for h in glob.glob(os.path.join(ROOT, d, "**", "*.h"), recursive=True):
+            macros |= set(re.findall(r"^\s*#\s*define\s+(GX_\w+)\b", open(h, encoding="utf-8", errors="replace").read(), re.M))
+    for path in glob.glob(os.path.join(tot, "include", "ttyd", "gx", "*.h")):
+        text = open(path, encoding="utf-8").read()
+        new = re.sub(r"^[ \t]*(GX_\w+)\s*(?:=[^,\n]*)?,[^\n]*\n",
+                     lambda m: "" if m.group(1) in macros else m.group(0), text, flags=re.M)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
     # every ttyd:: namespace the mod names exists, even one whose header
     # mod_headers.py emptied (its declarations are the decomp's now)
     os.makedirs(os.path.join(tot, "generated"), exist_ok=True)
