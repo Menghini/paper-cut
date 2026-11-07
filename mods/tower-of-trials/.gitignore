@@ -1,0 +1,4 @@
+# ToT's own source (GPL-3.0), fetched and converted by port/port_tot.py
+tot/
+tot-src/
+__pycache__/
